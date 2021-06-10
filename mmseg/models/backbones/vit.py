@@ -280,12 +280,67 @@ class HybridEmbed(nn.Module):
 @BACKBONES.register_module()
 class VisionTransformer(nn.Module):
     """ Vision Transformer with support for patch or hybrid CNN input stage
+    Parameters
+    ----------
+    img_szie : int
+        Both height and width of the image (it is a suqare)
+    patch_size : int
+        Both height and width of the patch (it is a suqare)
+    in_chans : int 
+        Number of input channels                     
+    embed_dim : int
+        Dimensionality of the patch embeddings
+    depth : int 
+        Number of blocks.
+    num_heads : int 
+        Numberof attention heads.
+    num_classes : int
+        Number of classes.
+    mlp_ratio : float
+        Determines the hidden dimension of the 'MLP' module.
+    qkv_bias : bool 
+        If TRUE then we incude bias to query, key and value projections.
+    drop_rate, attn_drop_rate, drop_path_rate : float
+        Dropout probability
+    Attributes
+    ----------
+    patch_embed : PatchEmbed
+        Instance of 'PatchEmbed' layer
+    pos_embed : nn.Parameter
+        Position embedding of all the patches
+    pos_drop : nn.Dropout
+        Dropout layer.
+    blocks : nn.ModuleList
+        List of 'Block' modules.
+    norm : nn.LayerNorm
+        Layer normalization
+
+
     """
 
-    def __init__(self, model_name='vit_large_patch16_384', img_size=384, patch_size=16, in_chans=3, embed_dim=1024, depth=24,
-                 num_heads=16, num_classes=19, mlp_ratio=4., qkv_bias=True, qk_scale=None, drop_rate=0.1, attn_drop_rate=0.,
-                 drop_path_rate=0., hybrid_backbone=None, norm_layer=partial(nn.LayerNorm, eps=1e-6), norm_cfg=None,
-                 pos_embed_interp=False, random_init=False, align_corners=False, **kwargs):
+    def __init__(
+            self, 
+            model_name='vit_large_patch16_384', 
+            img_size=384, 
+            patch_size=16, 
+            in_chans=3, 
+            embed_dim=1024, 
+            depth=24,
+            num_heads=16, 
+            num_classes=19, 
+            mlp_ratio=4., 
+            qkv_bias=True, 
+            qk_scale=None, 
+            drop_rate=0.1, 
+            attn_drop_rate=0.,
+            drop_path_rate=0., 
+            hybrid_backbone=None, 
+            norm_layer=partial(nn.LayerNorm, eps=1e-6), 
+            norm_cfg=None,
+            pos_embed_interp=False, 
+            random_init=False, 
+            align_corners=False, 
+            **kwargs):
         super(VisionTransformer, self).__init__(**kwargs)
         self.model_name = model_name
         self.img_size = img_size
@@ -311,6 +366,7 @@ class VisionTransformer(nn.Module):
         self.num_stages = self.depth
         self.out_indices = tuple(range(self.num_stages))
 
+        # patch embedding 
         if self.hybrid_backbone is not None:
             self.patch_embed = HybridEmbed(
                 self.hybrid_backbone, img_size=self.img_size, in_chans=self.in_chans, embed_dim=self.embed_dim)
